@@ -1,6 +1,5 @@
 """Python module for communication with PEKAT VISION 3.10.2 and higher."""
 
-import atexit
 import base64
 import json
 import os
@@ -44,7 +43,7 @@ UrlEndpoint = Literal[
 ALLOWED_RESPONSE_TYPES = get_args(ResponseType)
 
 
-def _get_local_addressses() -> List[str]:
+def _get_local_addresses() -> List[str]:
     return [
         addr["addr"]
         for interface in netifaces.interfaces()
@@ -118,6 +117,9 @@ class Instance:
         self.wait_for_init_model = wait_for_init_model
         self.gpu = gpu
 
+        self._shm = shared_memory.SharedMemory(create=True, size=1)
+        self._shm_arr = np.ndarray((1,), dtype=np.uint8, buffer=self._shm.buf)
+
         self.session = requests.Session()  # Session for all requests
 
         self.process: Optional[subprocess.Popen] = None
@@ -125,6 +127,13 @@ class Instance:
 
         self._rng = np.random.default_rng()
 
+        self.__stopping = False
+
+        self._is_local = self.host in [
+            *_get_local_addresses(),
+            "127.0.0.1",
+            "localhost",
+        ]
         if port is None:
             self.port = self._find_free_ports()
             self.port_is_defined = False
@@ -134,29 +143,27 @@ class Instance:
 
         if not already_running:
             self._start_instance()
-            atexit.register(self.stop)
 
         if ping:
             self.ping()
 
-        self.__stopping = False
-
-        self._shm = shared_memory.SharedMemory(create=True, size=1)
-        atexit.register(self._shm.close)
-        self._shm_arr = np.ndarray((1,), dtype=np.uint8, buffer=self._shm.buf)
-
-        self._is_local = self.host in [
-            *_get_local_addressses(),
-            "127.0.0.1",
-            "localhost",
-        ]
+    def __del__(self) -> None:
+        if not self.already_running:
+            self.stop()
+        self._shm.close()
 
     @cached_property
     def server_version(self) -> version.Version:
-        """Get the version of the PEKAT VISION server."""
+        """Get the version of the PEKAT VISION server.
+
+        Returns `Version("0.0.0")` if PEKAT VISION server's version is < 3.18.0.
+        """
         url = f"http://{self.host}:{self.port}/version"
         response = self.session.get(url, timeout=20)
-        return version.parse(response.text)
+        try:
+            return version.parse(response.text)
+        except version.InvalidVersion:
+            return version.Version("0.0.0")
 
     @cached_property
     def _can_use_shm(self) -> bool:

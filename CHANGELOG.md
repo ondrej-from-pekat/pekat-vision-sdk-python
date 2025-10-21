@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.3.2] - 2025-06-27
+
+### Fixed
+
+- Create attributes before an exception can be raised. PR [#42](https://github.com/pekat-vision/pekat-vision-sdk-python/pull/42) by [@Adamasterr](https://github.com/Adamasterr).
+
+## [2.3.1] - 2025-06-24
+
+### Fixed
+
+- Replace atexit registers with method calls in `__del__`. PR [#40](https://github.com/pekat-vision/pekat-vision-sdk-python/pull/40) by [@ondrej-from-pekat](https://github.com/ondrej-from-pekat).
+- Add try catch around version parse. PR [#38](https://github.com/pekat-vision/pekat-vision-sdk-python/pull/38) by [@ondrej-from-pekat](https://github.com/ondrej-from-pekat).
+
 ## [2.3.0] - 2025-02-24
 
 ### Changed
@@ -57,6 +70,8 @@ _If you are upgrading: please see [`UPGRADING.md`](UPGRADING.md)._
 - Fix `Instance(already_running=False)` not searching default install dir on Linux.
 - Fix project path not accepting `~` as a home directory.
 
+[2.3.2]: https://github.com/pekat-vision/pekat-vision-sdk-python/releases/tag/v2.3.2
+[2.3.1]: https://github.com/pekat-vision/pekat-vision-sdk-python/releases/tag/v2.3.1
 [2.3.0]: https://github.com/pekat-vision/pekat-vision-sdk-python/releases/tag/v2.3.0
 [2.2.0]: https://github.com/pekat-vision/pekat-vision-sdk-python/releases/tag/v2.2.0
 [2.1.0]: https://github.com/pekat-vision/pekat-vision-sdk-python/releases/tag/v2.1.0
